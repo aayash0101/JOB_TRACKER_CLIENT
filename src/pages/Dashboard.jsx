@@ -16,14 +16,19 @@ export default function Dashboard() {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   useEffect(() => {
     fetchJobs()
-  }, [])
+  }, [search, statusFilter])
 
   const fetchJobs = async () => {
     try {
-      const { data } = await api.get('/jobs')
+      const params = {}
+      if (search) params.search = search
+      if (statusFilter) params.status = statusFilter
+      const { data } = await api.get('/jobs', { params })
       setJobs(data.jobs)
     } catch (err) {
       setError('Failed to fetch jobs')
@@ -78,7 +83,7 @@ export default function Dashboard() {
         </div>
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">
             All Applications <span className="text-gray-400 text-base">({stats.total})</span>
           </h2>
@@ -90,6 +95,28 @@ export default function Dashboard() {
           </Link>
         </div>
 
+        {/* Search & Filter */}
+        <div className="flex gap-3 mb-6">
+          <input
+            type="text"
+            placeholder="Search by company or position..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Status</option>
+            <option value="applied">Applied</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Offer</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
         {error && <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4 text-sm">{error}</div>}
 
         {/* Jobs List */}
@@ -97,8 +124,8 @@ export default function Dashboard() {
           <p className="text-center text-gray-400 py-12">Loading...</p>
         ) : jobs.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-lg">No applications yet</p>
-            <p className="text-sm mt-1">Click "Add Job" to get started</p>
+            <p className="text-lg">No applications found</p>
+            <p className="text-sm mt-1">Try a different search or add a new job</p>
           </div>
         ) : (
           <div className="space-y-4">
