@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import JobDetail from './pages/JobDetail'
 import JobForm from './pages/JobForm'
 
 const PrivateRoute = ({ children }) => {
@@ -25,6 +26,7 @@ export default function App() {
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/jobs/new" element={<PrivateRoute><JobForm /></PrivateRoute>} />
+      <Route path="/jobs/:id" element={<PrivateRoute><JobDetail /></PrivateRoute>} />
       <Route path="/jobs/:id/edit" element={<PrivateRoute><JobForm /></PrivateRoute>} />
     </Routes>
   )

@@ -203,7 +203,9 @@ export default function Dashboard() {
                 <div className="flex items-center gap-4">
                   <div className={`w-2 h-2 rounded-full ${STATUS_DOT[job.status]}`} />
                   <div>
-                    <p className="font-semibold text-gray-900">{job.position}</p>
+                    <Link to={`/jobs/${job._id}`} className="font-semibold text-gray-900 hover:text-gray-600 transition">
+                      {job.position}
+                    </Link>
                     <p className="text-gray-500 text-sm">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
                   </div>
                 </div>
