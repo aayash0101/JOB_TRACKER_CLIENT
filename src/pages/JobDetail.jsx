@@ -49,8 +49,18 @@ export default function JobDetail() {
   const [newNote, setNewNote] = useState('')
   const [noteSaving, setNoteSaving] = useState(false)
   const [notesError, setNotesError] = useState('')
+  const [extraInfo, setExtraInfo] = useState('')
+  const [coverLetter, setCoverLetter] = useState('')
+  const [generatingCoverLetter, setGeneratingCoverLetter] = useState(false)
+  const [coverLetterError, setCoverLetterError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
+    const storedExtra = localStorage.getItem('coverLetterExtraInfo')
+    if (storedExtra) setExtraInfo(storedExtra)
+    setCoverLetter('')
+    setCoverLetterError('')
+    setCopied(false)
     fetchJob()
     fetchNotes()
   }, [id])
@@ -105,6 +115,31 @@ export default function JobDetail() {
       setNotes((prev) => prev.filter((note) => note._id !== noteId))
     } catch (err) {
       setNotesError('Failed to delete note')
+    }
+  }
+
+  const handleGenerateCoverLetter = async () => {
+    setCoverLetterError('')
+    setGeneratingCoverLetter(true)
+    try {
+      const { data } = await api.post(`/jobs/${id}/cover-letter`, { extraInfo })
+      setCoverLetter(data.coverLetter)
+      setCopied(false)
+      localStorage.setItem('coverLetterExtraInfo', extraInfo)
+    } catch (err) {
+      setCoverLetterError(err.response?.data?.message || 'Failed to generate cover letter')
+    } finally {
+      setGeneratingCoverLetter(false)
+    }
+  }
+
+  const handleCopyCoverLetter = async () => {
+    try {
+      await navigator.clipboard.writeText(coverLetter)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (_err) {
+      setCoverLetterError('Unable to copy to clipboard')
     }
   }
 
@@ -256,6 +291,73 @@ export default function JobDetail() {
                   </a>
                 </div>
               )}
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-2xl p-8">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-6">Cover Letter</p>
+              <p className="text-sm text-gray-500 mb-4">Add optional background details and generate a tailored cover letter for this role.</p>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tell us about yourself</label>
+                  <textarea
+                    value={extraInfo}
+                    onChange={(e) => {
+                      setExtraInfo(e.target.value)
+                      localStorage.setItem('coverLetterExtraInfo', e.target.value)
+                    }}
+                    rows={4}
+                    placeholder="Skills, experience, industry focus..."
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 text-gray-900 px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={handleGenerateCoverLetter}
+                    disabled={generatingCoverLetter}
+                    className="inline-flex items-center justify-center rounded-xl bg-gray-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {generatingCoverLetter ? 'Generating...' : coverLetter ? 'Regenerate Cover Letter' : 'Generate Cover Letter'}
+                  </button>
+                </div>
+
+                {generatingCoverLetter && (
+                  <p className="text-sm text-gray-500">Generating your cover letter...</p>
+                )}
+
+                {coverLetterError && (
+                  <div className="bg-red-50 border border-red-100 text-red-500 px-4 py-3 rounded-xl text-sm">
+                    {coverLetterError}
+                  </div>
+                )}
+
+                {coverLetter && (
+                  <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                      <p className="text-sm font-semibold text-gray-900">Generated Cover Letter</p>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={handleCopyCoverLetter}
+                          className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                        >
+                          {copied ? 'Copied!' : 'Copy to Clipboard'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleGenerateCoverLetter}
+                          className="rounded-xl bg-gray-950 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 transition"
+                        >
+                          Regenerate
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">{coverLetter}</p>
+                    <p className="text-xs text-gray-500 mt-4">Generated by AI — review before sending</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {job.notes && (
