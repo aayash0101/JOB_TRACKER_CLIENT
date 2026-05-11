@@ -32,9 +32,15 @@ export default function JobDetail() {
   const [job, setJob] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [notes, setNotes] = useState([])
+  const [notesLoading, setNotesLoading] = useState(true)
+  const [newNote, setNewNote] = useState('')
+  const [noteSaving, setNoteSaving] = useState(false)
+  const [notesError, setNotesError] = useState('')
 
   useEffect(() => {
     fetchJob()
+    fetchNotes()
   }, [id])
 
   const fetchJob = async () => {
@@ -45,6 +51,48 @@ export default function JobDetail() {
       setError('Failed to load job')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchNotes = async () => {
+    try {
+      setNotesLoading(true)
+      setNotesError('')
+      const { data } = await api.get(`/jobs/${id}/notes`)
+      setNotes(data.notes)
+    } catch (err) {
+      setNotesError('Failed to load notes')
+    } finally {
+      setNotesLoading(false)
+    }
+  }
+
+  const handleAddNote = async (e) => {
+    e.preventDefault()
+    if (!newNote.trim()) {
+      setNotesError('Note cannot be empty')
+      return
+    }
+
+    try {
+      setNoteSaving(true)
+      setNotesError('')
+      const { data } = await api.post(`/jobs/${id}/notes`, { content: newNote.trim() })
+      setNotes((prev) => [data.note, ...prev])
+      setNewNote('')
+    } catch (err) {
+      setNotesError('Failed to add note')
+    } finally {
+      setNoteSaving(false)
+    }
+  }
+
+  const handleDeleteNote = async (noteId) => {
+    try {
+      await api.delete(`/jobs/${id}/notes/${noteId}`)
+      setNotes((prev) => prev.filter((note) => note._id !== noteId))
+    } catch (err) {
+      setNotesError('Failed to delete note')
     }
   }
 
@@ -204,6 +252,63 @@ export default function JobDetail() {
                     <p className="text-xs text-gray-400 mt-0.5">{formatDate(job.updatedAt)}</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-100 rounded-2xl p-8">
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Activity Log</p>
+                <span className="text-gray-500 text-sm">{notes.length} entries</span>
+              </div>
+
+              <form onSubmit={handleAddNote} className="space-y-4">
+                <textarea
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  rows={4}
+                  placeholder="Add a new note..."
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 text-gray-900 px-4 py-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="flex items-center justify-between gap-4">
+                  <button
+                    type="submit"
+                    disabled={noteSaving}
+                    className="inline-flex items-center justify-center rounded-xl bg-gray-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {noteSaving ? 'Saving...' : 'Add Note'}
+                  </button>
+                </div>
+                {notesError && (
+                  <p className="text-sm text-red-500">{notesError}</p>
+                )}
+              </form>
+
+              <div className="mt-8">
+                {notesLoading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
+                  </div>
+                ) : notes.length === 0 ? (
+                  <p className="text-sm text-gray-500">No notes yet. Add one above.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {notes.map((note) => (
+                      <div key={note._id} className="group bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                        <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">{note.content}</p>
+                        <div className="mt-3 flex items-center justify-between text-xs text-gray-400">
+                          <span>{timeAgo(note.createdAt)}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteNote(note._id)}
+                            className="opacity-0 transition group-hover:opacity-100 text-gray-500 hover:text-red-500"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
