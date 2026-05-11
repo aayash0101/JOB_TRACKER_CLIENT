@@ -100,6 +100,9 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 bg-white/10 text-white px-4 py-2.5 rounded-xl text-sm font-medium">
               <span>📋</span> Applications
             </div>
+            <Link to="/profile" className="flex items-center gap-3 text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">
+              <span>👤</span> Profile
+            </Link>
           </div>
         </div>
         <div className="border-t border-white/10 pt-6">

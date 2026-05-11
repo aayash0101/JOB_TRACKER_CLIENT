@@ -72,7 +72,10 @@ export default function JobDetail() {
         <div className="flex-1">
           <p className="text-gray-500 text-xs uppercase tracking-widest mb-4 font-medium">Menu</p>
           <Link to="/dashboard" className="flex items-center gap-3 text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">
-            Applications
+            <span>📋</span> Applications
+          </Link>
+          <Link to="/profile" className="flex items-center gap-3 text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">
+            <span>👤</span> Profile
           </Link>
         </div>
         <div className="border-t border-white/10 pt-6">

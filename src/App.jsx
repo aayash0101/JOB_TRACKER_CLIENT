@@ -5,6 +5,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import JobDetail from './pages/JobDetail'
 import JobForm from './pages/JobForm'
+import ProfileSettings from './pages/ProfileSettings'
 
 const PrivateRoute = ({ children }) => {
   const { token, loading } = useAuth()
@@ -25,6 +26,7 @@ export default function App() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/profile" element={<PrivateRoute><ProfileSettings /></PrivateRoute>} />
       <Route path="/jobs/new" element={<PrivateRoute><JobForm /></PrivateRoute>} />
       <Route path="/jobs/:id" element={<PrivateRoute><JobDetail /></PrivateRoute>} />
       <Route path="/jobs/:id/edit" element={<PrivateRoute><JobForm /></PrivateRoute>} />

@@ -67,6 +67,9 @@ export default function JobForm() {
           <Link to="/dashboard" className="flex items-center gap-3 text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">
             <span>📋</span> Applications
           </Link>
+          <Link to="/profile" className="flex items-center gap-3 text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm font-medium transition">
+            <span>👤</span> Profile
+          </Link>
         </div>
       </aside>
 
