@@ -151,7 +151,7 @@ export default function Dashboard() {
         {/* Controls */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">..</span>
             <input
               type="text"
               placeholder="Search company or position..."
