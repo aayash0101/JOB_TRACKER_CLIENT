@@ -26,6 +26,25 @@ const STAT_CARDS = [
   { key: 'rejected', label: 'Rejected', bg: 'bg-red-50', text: 'text-red-500', border: 'border-red-100' },
 ]
 
+const getFollowUpStatus = (date) => {
+  if (!date) return null
+  const diffDays = Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24))
+  if (diffDays < 0) {
+    return { label: 'Overdue', badge: 'bg-red-50 text-red-600' }
+  }
+  if (diffDays <= 3) {
+    return { label: 'Due soon', badge: 'bg-amber-50 text-amber-600' }
+  }
+  return { label: '', badge: 'bg-gray-100 text-gray-700' }
+}
+
+const formatFollowUpDate = (date) => {
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -244,37 +263,57 @@ export default function Dashboard() {
             onJobDelete={handleDelete}
           />
         ) : (
-          <div className="space-y-3">
-            {jobs.map(job => (
-              <div key={job._id} className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex justify-between items-center hover:border-gray-200 transition">
-                <div className="flex items-center gap-4">
-                  <div className={`w-2 h-2 rounded-full ${STATUS_DOT[job.status]}`} />
-                  <div>
-                    <Link to={`/jobs/${job._id}`} className="font-semibold text-gray-900 hover:text-gray-600 transition">
-                      {job.position}
-                    </Link>
-                    <p className="text-gray-500 text-sm">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-[1.6fr_0.9fr_0.9fr_0.8fr] gap-4 px-6 py-4 text-xs uppercase tracking-widest text-gray-500 bg-gray-50 border-b border-gray-100">
+              <div>Application</div>
+              <div>Status</div>
+              <div>Follow Up</div>
+              <div className="text-right">Actions</div>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {jobs.map(job => {
+                const followUp = getFollowUpStatus(job.followUpDate)
+                return (
+                  <div key={job._id} className="grid grid-cols-[1.6fr_0.9fr_0.9fr_0.8fr] gap-4 px-6 py-4 items-center hover:bg-gray-50 transition">
+                    <div>
+                      <Link to={`/jobs/${job._id}`} className="font-semibold text-gray-900 hover:text-gray-600 transition">
+                        {job.position}
+                      </Link>
+                      <p className="text-gray-500 text-sm">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
+                    </div>
+                    <div>
+                      <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg capitalize ${STATUS_STYLES[job.status]}`}>
+                        {job.status}
+                      </span>
+                    </div>
+                    <div>
+                      {job.followUpDate ? (
+                        <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${followUp.badge}`}>
+                          {formatFollowUpDate(job.followUpDate)}
+                          {followUp.label && <span className="uppercase tracking-widest">{followUp.label}</span>}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Link
+                        to={`/jobs/${job._id}/edit`}
+                        className="text-xs font-medium text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition"
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(job._id)}
+                        className="text-xs font-medium text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg capitalize ${STATUS_STYLES[job.status]}`}>
-                    {job.status}
-                  </span>
-                  <Link
-                    to={`/jobs/${job._id}/edit`}
-                    className="text-xs font-medium text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(job._id)}
-                    className="text-xs font-medium text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ))}
+                )
+              })}
+            </div>
           </div>
         )}
       </main>

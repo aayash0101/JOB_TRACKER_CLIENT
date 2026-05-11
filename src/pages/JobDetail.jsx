@@ -25,6 +25,18 @@ const timeAgo = (date) => {
   return `${days} days ago`
 }
 
+const getFollowUpStatus = (date) => {
+  if (!date) return null
+  const diffDays = Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24))
+  if (diffDays < 0) {
+    return { label: 'Overdue', badge: 'bg-red-50 text-red-600', text: 'text-red-600' }
+  }
+  if (diffDays <= 3) {
+    return { label: 'Due soon', badge: 'bg-amber-50 text-amber-600', text: 'text-amber-600' }
+  }
+  return { label: '', badge: 'bg-gray-100 text-gray-900', text: 'text-gray-900' }
+}
+
 export default function JobDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -201,6 +213,24 @@ export default function JobDetail() {
                   <div>
                     <p className="text-xs text-gray-400 mb-1">Salary</p>
                     <p className="text-gray-900 font-medium">{job.salary}</p>
+                  </div>
+                )}
+                {job.followUpDate && (
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Follow Up By</p>
+                    {(() => {
+                      const followUp = getFollowUpStatus(job.followUpDate)
+                      return (
+                        <div className="flex items-center gap-2">
+                          <p className={`text-sm font-medium ${followUp.text}`}>{formatDate(job.followUpDate)}</p>
+                          {followUp.label && (
+                            <span className={`text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full ${followUp.badge}`}>
+                              {followUp.label}
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })()}
                   </div>
                 )}
                 <div>

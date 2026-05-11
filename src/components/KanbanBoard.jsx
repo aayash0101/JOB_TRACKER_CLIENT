@@ -31,6 +31,18 @@ const formatDate = (date) => {
   })
 }
 
+const getFollowUpStatus = (date) => {
+  if (!date) return null
+  const diffDays = Math.ceil((new Date(date) - new Date()) / (1000 * 60 * 60 * 24))
+  if (diffDays < 0) {
+    return { label: 'Overdue', badge: 'bg-red-50 text-red-600' }
+  }
+  if (diffDays <= 3) {
+    return { label: 'Due soon', badge: 'bg-amber-50 text-amber-600' }
+  }
+  return { label: '', badge: 'bg-gray-100 text-gray-700' }
+}
+
 export default function KanbanBoard({ jobs, onJobUpdate }) {
   const [draggingJobId, setDraggingJobId] = useState(null)
   const [error, setError] = useState('')
@@ -98,7 +110,7 @@ export default function KanbanBoard({ jobs, onJobUpdate }) {
                     <div
                       ref={provided.innerRef}
                       {...provided.droppableProps}
-                      className={`min-h-[200px] space-y-3 transition-colors ${
+                      className={`space-y-3 transition-colors ${
                         snapshot.isDraggingOver ? 'bg-blue-50 border-2 border-dashed border-blue-200 rounded-xl' : ''
                       }`}
                     >
@@ -133,7 +145,7 @@ export default function KanbanBoard({ jobs, onJobUpdate }) {
                                         {job.company}
                                       </p>
                                     </div>
-                                    <div className={`w-2 h-2 rounded-full ${STATUS_DOT[job.status]} flex-shrink-0 ml-2`} />
+                                    <div className={`w-2 h-2 rounded-full ${STATUS_DOT[job.status]} shrink-0 ml-2`} />
                                   </div>
 
                                   <div className="flex items-center justify-between">
@@ -144,6 +156,15 @@ export default function KanbanBoard({ jobs, onJobUpdate }) {
                                       {job.status}
                                     </span>
                                   </div>
+                                  {job.followUpDate && (() => {
+                                    const followUp = getFollowUpStatus(job.followUpDate)
+                                    return (
+                                      <div className={`mt-3 inline-flex items-center gap-2 rounded-full px-2 py-1 text-[11px] font-semibold ${followUp.badge}`}>
+                                        <span>{formatDate(job.followUpDate)}</span>
+                                        {followUp.label && <span className="uppercase tracking-widest">{followUp.label}</span>}
+                                      </div>
+                                    )
+                                  })()}
                                 </Link>
                               </div>
                             )}

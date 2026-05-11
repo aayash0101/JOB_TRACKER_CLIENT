@@ -14,6 +14,7 @@ export default function JobForm() {
     location: '',
     salary: '',
     jobUrl: '',
+    followUpDate: '',
     notes: '',
   })
   const [loading, setLoading] = useState(false)
@@ -26,8 +27,17 @@ export default function JobForm() {
   const fetchJob = useCallback(async () => {
     try {
       const { data } = await api.get(`/jobs/${id}`)
-      const { company, position, status, location, salary, jobUrl, notes } = data.job
-      setForm({ company, position, status, location: location || '', salary: salary || '', jobUrl: jobUrl || '', notes: notes || '' })
+      const { company, position, status, location, salary, jobUrl, followUpDate, notes } = data.job
+      setForm({
+        company,
+        position,
+        status,
+        location: location || '',
+        salary: salary || '',
+        jobUrl: jobUrl || '',
+        followUpDate: followUpDate ? followUpDate.split('T')[0] : '',
+        notes: notes || ''
+      })
     } catch (_err) {
       setError('Failed to load job')
     }
@@ -173,6 +183,17 @@ export default function JobForm() {
                   onChange={handleChange}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
                   placeholder="https://..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Follow Up By</label>
+                <input
+                  type="date"
+                  name="followUpDate"
+                  value={form.followUpDate}
+                  onChange={handleChange}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
                 />
               </div>
 
