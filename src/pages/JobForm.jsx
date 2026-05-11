@@ -23,15 +23,19 @@ export default function JobForm() {
     if (isEditing) fetchJob()
   }, [id])
 
-  const fetchJob = async () => {
+  const fetchJob = useCallback(async () => {
     try {
       const { data } = await api.get(`/jobs/${id}`)
       const { company, position, status, location, salary, jobUrl, notes } = data.job
       setForm({ company, position, status, location: location || '', salary: salary || '', jobUrl: jobUrl || '', notes: notes || '' })
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to load job')
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (isEditing) fetchJob()
+  }, [isEditing, fetchJob])
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })

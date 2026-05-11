@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import StatsChart from '../components/StatsChart'
+import KanbanBoard from '../components/KanbanBoard'
 
 const STATUS_STYLES = {
   applied: 'bg-blue-50 text-blue-600',
@@ -34,6 +35,21 @@ export default function Dashboard() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [chartStats, setChartStats] = useState([])
+  const [view, setView] = useState(() => localStorage.getItem('dashboardView') || 'list')
+
+  const fetchJobs = async () => {
+    try {
+      const params = {}
+      if (search) params.search = search
+      if (statusFilter) params.status = statusFilter
+      const { data } = await api.get('/jobs', { params })
+      setJobs(data.jobs)
+    } catch {
+      setError('Failed to fetch jobs')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetchJobs()
@@ -51,20 +67,6 @@ export default function Dashboard() {
     fetchStats()
   }, [jobs])
 
-  const fetchJobs = async () => {
-    try {
-      const params = {}
-      if (search) params.search = search
-      if (statusFilter) params.status = statusFilter
-      const { data } = await api.get('/jobs', { params })
-      setJobs(data.jobs)
-    } catch (err) {
-      setError('Failed to fetch jobs')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this application?')) return
     try {
@@ -78,6 +80,17 @@ export default function Dashboard() {
   const handleLogout = () => {
     logout()
     navigate('/login')
+  }
+
+  const handleViewChange = (newView) => {
+    setView(newView)
+    localStorage.setItem('dashboardView', newView)
+  }
+
+  const handleJobStatusUpdate = (jobId, newStatus) => {
+    setJobs(jobs.map(job =>
+      job._id === jobId ? { ...job, status: newStatus } : job
+    ))
   }
 
   const stats = {
@@ -174,6 +187,31 @@ export default function Dashboard() {
             <option value="offer">Offer</option>
             <option value="rejected">Rejected</option>
           </select>
+
+          {/* View Toggle */}
+          <div className="flex bg-white border border-gray-200 rounded-xl p-1">
+            <button
+              onClick={() => handleViewChange('list')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                view === 'list'
+                  ? 'bg-gray-950 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              📋 List
+            </button>
+            <button
+              onClick={() => handleViewChange('board')}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                view === 'board'
+                  ? 'bg-gray-950 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              📊 Board
+            </button>
+          </div>
+
           <Link
             to="/jobs/new"
             className="bg-gray-950 text-white px-5 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition whitespace-nowrap text-center"
@@ -191,7 +229,7 @@ export default function Dashboard() {
 
         {error && <div className="bg-red-50 border border-red-100 text-red-500 px-4 py-3 rounded-xl mb-4 text-sm">{error}</div>}
 
-        {/* Jobs List */}
+        {/* Jobs List/Board */}
         {loading ? (
           <div className="text-center py-16 text-gray-400">Loading...</div>
         ) : jobs.length === 0 ? (
@@ -199,6 +237,12 @@ export default function Dashboard() {
             <p className="text-gray-400 text-lg">No applications found</p>
             <p className="text-gray-300 text-sm mt-1">Add your first job to get started</p>
           </div>
+        ) : view === 'board' ? (
+          <KanbanBoard
+            jobs={jobs}
+            onJobUpdate={handleJobStatusUpdate}
+            onJobDelete={handleDelete}
+          />
         ) : (
           <div className="space-y-3">
             {jobs.map(job => (
