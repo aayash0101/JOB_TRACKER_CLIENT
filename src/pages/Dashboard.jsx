@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
+import StatsChart from '../components/StatsChart'
 
 const STATUS_COLORS = {
   applied: 'bg-blue-100 text-blue-700',
@@ -18,10 +19,23 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [chartStats, setChartStats] = useState([])
 
   useEffect(() => {
     fetchJobs()
   }, [search, statusFilter])
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await api.get('/jobs/stats')
+        setChartStats(data.stats)
+      } catch (err) {
+        console.error('Failed to fetch stats')
+      }
+    }
+    fetchStats()
+  }, [jobs])
 
   const fetchJobs = async () => {
     try {
@@ -72,7 +86,11 @@ export default function Dashboard() {
       </nav>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Stats */}
+
+        {/* Chart */}
+        <StatsChart stats={chartStats} />
+
+        {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {['applied', 'interview', 'offer', 'rejected'].map(status => (
             <div key={status} className="bg-white rounded-xl shadow-sm p-4 text-center">
