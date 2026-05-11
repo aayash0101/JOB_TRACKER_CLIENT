@@ -4,12 +4,26 @@ import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import StatsChart from '../components/StatsChart'
 
-const STATUS_COLORS = {
-  applied: 'bg-blue-100 text-blue-700',
-  interview: 'bg-yellow-100 text-yellow-700',
-  offer: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-700',
+const STATUS_STYLES = {
+  applied: 'bg-blue-50 text-blue-600',
+  interview: 'bg-amber-50 text-amber-600',
+  offer: 'bg-emerald-50 text-emerald-600',
+  rejected: 'bg-red-50 text-red-500',
 }
+
+const STATUS_DOT = {
+  applied: 'bg-blue-500',
+  interview: 'bg-amber-500',
+  offer: 'bg-emerald-500',
+  rejected: 'bg-red-500',
+}
+
+const STAT_CARDS = [
+  { key: 'applied', label: 'Applied', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100' },
+  { key: 'interview', label: 'Interview', bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100' },
+  { key: 'offer', label: 'Offer', bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100' },
+  { key: 'rejected', label: 'Rejected', bg: 'bg-red-50', text: 'text-red-500', border: 'border-red-100' },
+]
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
@@ -67,7 +81,6 @@ export default function Dashboard() {
   }
 
   const stats = {
-    total: jobs.length,
     applied: jobs.filter(j => j.status === 'applied').length,
     interview: jobs.filter(j => j.status === 'interview').length,
     offer: jobs.filter(j => j.status === 'offer').length,
@@ -75,57 +88,82 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navbar */}
-      <nav className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">JobTracker</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-600 text-sm">Hi, {user?.name}</span>
-          <button onClick={handleLogout} className="text-sm text-red-500 hover:underline">Logout</button>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <aside className="hidden lg:flex flex-col w-64 bg-gray-950 min-h-screen p-6 fixed top-0 left-0">
+        <div className="mb-10">
+          <span className="text-white font-bold text-xl tracking-tight">⬡ JobTracker</span>
         </div>
+        <div className="flex-1">
+          <p className="text-gray-500 text-xs uppercase tracking-widest mb-4 font-medium">Menu</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-3 bg-white/10 text-white px-4 py-2.5 rounded-xl text-sm font-medium">
+              <span>📋</span> Applications
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-white/10 pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-full bg-emerald-400 flex items-center justify-center text-gray-950 font-bold text-sm">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="text-white text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-gray-500 text-xs">Job Seeker</p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full text-left text-gray-400 hover:text-white text-sm transition px-1"
+          >
+            → Sign out
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile Navbar */}
+      <nav className="lg:hidden fixed top-0 left-0 right-0 bg-gray-950 px-6 py-4 flex justify-between items-center z-10">
+        <span className="text-white font-bold text-lg">⬡ JobTracker</span>
+        <button onClick={handleLogout} className="text-gray-400 text-sm hover:text-white transition">Sign out</button>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* Main Content */}
+      <main className="flex-1 lg:ml-64 px-6 py-8 pt-20 lg:pt-8 max-w-4xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Good to see you, {user?.name?.split(' ')[0]} 👋</h1>
+          <p className="text-gray-500 mt-1">Here's your job search at a glance</p>
+        </div>
 
-        {/* Chart */}
-        <StatsChart stats={chartStats} />
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {['applied', 'interview', 'offer', 'rejected'].map(status => (
-            <div key={status} className="bg-white rounded-xl shadow-sm p-4 text-center">
-              <p className="text-2xl font-bold text-gray-800">{stats[status]}</p>
-              <p className="text-sm text-gray-500 capitalize">{status}</p>
+        {/* Stat Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {STAT_CARDS.map(({ key, label, bg, text, border }) => (
+            <div key={key} className={`${bg} border ${border} rounded-2xl p-4`}>
+              <p className={`text-3xl font-bold ${text}`}>{stats[key]}</p>
+              <p className={`text-sm font-medium ${text} opacity-70 mt-1`}>{label}</p>
             </div>
           ))}
         </div>
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">
-            All Applications <span className="text-gray-400 text-base">({stats.total})</span>
-          </h2>
-          <Link
-            to="/jobs/new"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-          >
-            + Add Job
-          </Link>
-        </div>
+        {/* Chart */}
+        <StatsChart stats={chartStats} />
 
-        {/* Search & Filter */}
-        <div className="flex gap-3 mb-6">
-          <input
-            type="text"
-            placeholder="Search by company or position..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        {/* Controls */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+            <input
+              type="text"
+              placeholder="Search company or position..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
+            />
+          </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 transition"
           >
             <option value="">All Status</option>
             <option value="applied">Applied</option>
@@ -133,39 +171,64 @@ export default function Dashboard() {
             <option value="offer">Offer</option>
             <option value="rejected">Rejected</option>
           </select>
+          <Link
+            to="/jobs/new"
+            className="bg-gray-950 text-white px-5 py-3 rounded-xl text-sm font-medium hover:bg-gray-800 transition whitespace-nowrap text-center"
+          >
+            + Add Job
+          </Link>
         </div>
 
-        {error && <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4 text-sm">{error}</div>}
+        {/* Section Title */}
+        <div className="flex justify-between items-center mb-4">
+          <p className="text-sm font-semibold text-gray-400 uppercase tracking-widest">
+            Applications ({jobs.length})
+          </p>
+        </div>
+
+        {error && <div className="bg-red-50 border border-red-100 text-red-500 px-4 py-3 rounded-xl mb-4 text-sm">{error}</div>}
 
         {/* Jobs List */}
         {loading ? (
-          <p className="text-center text-gray-400 py-12">Loading...</p>
+          <div className="text-center py-16 text-gray-400">Loading...</div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <p className="text-lg">No applications found</p>
-            <p className="text-sm mt-1">Try a different search or add a new job</p>
+          <div className="text-center py-16">
+            <p className="text-gray-400 text-lg">No applications found</p>
+            <p className="text-gray-300 text-sm mt-1">Add your first job to get started</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {jobs.map(job => (
-              <div key={job._id} className="bg-white rounded-xl shadow-sm p-5 flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold text-gray-800">{job.position}</h3>
-                  <p className="text-gray-500 text-sm">{job.company}</p>
-                  {job.location && <p className="text-gray-400 text-xs mt-1">{job.location}</p>}
+              <div key={job._id} className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex justify-between items-center hover:border-gray-200 transition">
+                <div className="flex items-center gap-4">
+                  <div className={`w-2 h-2 rounded-full ${STATUS_DOT[job.status]}`} />
+                  <div>
+                    <p className="font-semibold text-gray-900">{job.position}</p>
+                    <p className="text-gray-500 text-sm">{job.company}{job.location ? ` · ${job.location}` : ''}</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full capitalize ${STATUS_COLORS[job.status]}`}>
+                  <span className={`text-xs font-semibold px-3 py-1.5 rounded-lg capitalize ${STATUS_STYLES[job.status]}`}>
                     {job.status}
                   </span>
-                  <Link to={`/jobs/${job._id}/edit`} className="text-sm text-blue-500 hover:underline">Edit</Link>
-                  <button onClick={() => handleDelete(job._id)} className="text-sm text-red-400 hover:underline">Delete</button>
+                  <Link
+                    to={`/jobs/${job._id}/edit`}
+                    className="text-xs font-medium text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(job._id)}
+                    className="text-xs font-medium text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition"
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }
