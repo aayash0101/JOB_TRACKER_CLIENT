@@ -30,8 +30,7 @@ https://your-vercel-url.vercel.app
 ## 🏃 Run Locally
 
 1. Clone the repo
-   git clone https://github.com/your-username/job-tracker-client
-
+   git clone https://github.com/aayash0101/JOB_TRACKER_CLIENT
 2. Install dependencies
    npm install
 
@@ -42,4 +41,4 @@ https://your-vercel-url.vercel.app
    npm run dev
 
 ## 🔗 Backend Repo
-https://github.com/your-username/job-tracker-api
+https://github.com/aayash0101/JOB_TRACKER_API
